@@ -63,7 +63,7 @@
           .wrap($wrapper)
           .parent()
           .prepend(defaultHint ? $hint : null)
-          .append(defaultMenu ? $menu : null);
+          .after(defaultMenu ? $menu : null);
         }
 
         MenuConstructor = defaultMenu ? DefaultMenu : Menu;

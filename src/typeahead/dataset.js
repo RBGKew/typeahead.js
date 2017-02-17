@@ -90,6 +90,7 @@ var Dataset = (function() {
 
     _overwrite: function overwrite(query, suggestions) {
       suggestions = suggestions || [];
+      this._emptyOnAsync = false;
 
       // got suggestions: overwrite dom with suggestions
       if (suggestions.length) {
@@ -106,9 +107,9 @@ var Dataset = (function() {
         this._renderNotFound(query);
       }
 
-      // nothing to render: empty dom
+      // nothing to render: empty dom when async arrives
       else {
-        this._empty();
+        this._emptyOnAsync = true;
       }
 
       this.trigger('rendered', suggestions, false, this.name);
@@ -118,7 +119,7 @@ var Dataset = (function() {
       suggestions = suggestions || [];
 
       // got suggestions, sync suggestions exist: append suggestions to dom
-      if (suggestions.length && this.$lastSuggestion.length) {
+      if (suggestions.length && this.$lastSuggestion.length && !this._emptyOnAsync) {
         this._appendSuggestions(query, suggestions);
       }
 
@@ -128,8 +129,13 @@ var Dataset = (function() {
       }
 
       // no async/sync suggestions: overwrite dom with not found
-      else if (!this.$lastSuggestion.length && this.templates.notFound) {
+      else if (this._emptyOnAsync && this.templates.notFound) {
         this._renderNotFound(query);
+      }
+
+      // no template available: hide suggestions
+      else {
+        this._empty();
       }
 
       this.trigger('rendered', suggestions, true, this.name);

@@ -9,7 +9,7 @@
         define([ "jquery" ], function(a0) {
             return factory(a0);
         });
-    } else if (typeof exports === "object") {
+    } else if (typeof module === "object" && module.exports) {
         module.exports = factory(require("jquery"));
     } else {
         factory(root["jQuery"]);
@@ -743,6 +743,7 @@
         _.mixin(Dataset.prototype, EventEmitter, {
             _overwrite: function overwrite(query, suggestions) {
                 suggestions = suggestions || [];
+                this._emptyOnAsync = false;
                 if (suggestions.length) {
                     this._renderSuggestions(query, suggestions);
                 } else if (this.async && this.templates.pending) {
@@ -750,18 +751,20 @@
                 } else if (!this.async && this.templates.notFound) {
                     this._renderNotFound(query);
                 } else {
-                    this._empty();
+                    this._emptyOnAsync = true;
                 }
                 this.trigger("rendered", suggestions, false, this.name);
             },
             _append: function append(query, suggestions) {
                 suggestions = suggestions || [];
-                if (suggestions.length && this.$lastSuggestion.length) {
+                if (suggestions.length && this.$lastSuggestion.length && !this._emptyOnAsync) {
                     this._appendSuggestions(query, suggestions);
                 } else if (suggestions.length) {
                     this._renderSuggestions(query, suggestions);
-                } else if (!this.$lastSuggestion.length && this.templates.notFound) {
+                } else if (this._emptyOnAsync && this.templates.notFound) {
                     this._renderNotFound(query);
+                } else {
+                    this._empty();
                 }
                 this.trigger("rendered", suggestions, true, this.name);
             },
@@ -1459,7 +1462,7 @@
                     if (defaultHint || defaultMenu) {
                         $wrapper.css(www.css.wrapper);
                         $input.css(defaultHint ? www.css.input : www.css.inputWithNoHint);
-                        $input.wrap($wrapper).parent().prepend(defaultHint ? $hint : null).append(defaultMenu ? $menu : null);
+                        $input.wrap($wrapper).parent().prepend(defaultHint ? $hint : null).after(defaultMenu ? $menu : null);
                     }
                     MenuConstructor = defaultMenu ? DefaultMenu : Menu;
                     eventBus = new EventBus({
