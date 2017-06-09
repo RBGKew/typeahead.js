@@ -30,5 +30,3 @@ install:
 before_script:
 - grunt build
 script: test/ci
-addons:
-  sauce_connect: true
